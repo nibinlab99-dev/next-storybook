@@ -78,7 +78,6 @@ async function buildTokens() {
 
     // Output files
     const tokensCSSPath = path.join(cssOutputDir, 'tokens.css');
-    const themeCSSPath = path.join(cssOutputDir, 'theme.css');
 
     let tokensCSS = '/**\n * Design Tokens - Auto-generated from tokens.json\n * DO NOT EDIT MANUALLY - Run \'npm run tokens:build\' to regenerate\n * Source: Figma Token Studio\n */\n\n:root {\n';
 
@@ -185,90 +184,21 @@ async function buildTokens() {
 
     tokensCSS += '}\n';
 
-    // Generate theme file (Tailwind utilities mapped to tokens)
-    const utilityLines = [];
-    utilityLines.push('/**');
-    utilityLines.push(' * Theme tokens - auto-generated');
-    utilityLines.push(' * DO NOT EDIT MANUALLY - Run \'npm run tokens:build\' to regenerate');
-    utilityLines.push(' */');
-    utilityLines.push('');
-
-    for (const [name] of Object.entries(flatFills)) {
-        utilityLines.push(`.bg-${name} { background-color: var(--fill-${name}); }`);
-    }
-
-    for (const [name] of Object.entries(flatStrokes)) {
-        utilityLines.push(`.border-${name} { border-color: var(--stroke-${name}); }`);
-    }
-
-    for (const [name] of Object.entries(flatText)) {
-        utilityLines.push(`.text-${name} { color: var(--text-${name}); }`);
-    }
-
-    for (const [name] of Object.entries(flatButtons)) {
-        if (name.includes('fill')) {
-            utilityLines.push(`.bg-button-${name} { background-color: var(--button-${name}); }`);
-        }
-        if (name.includes('stroke')) {
-            utilityLines.push(`.border-button-${name} { border-color: var(--button-${name}); }`);
-        }
-        if (name.includes('text')) {
-            utilityLines.push(`.text-button-${name} { color: var(--button-${name}); }`);
-        }
-    }
-
-    for (const [name] of Object.entries(flatSpacing)) {
-        const cleanName = removePrefix(name, 'space');
-        const spacingVar = `var(--space-${cleanName})`;
-        utilityLines.push(`.p-${cleanName} { padding: ${spacingVar}; }`);
-        utilityLines.push(`.px-${cleanName} { padding-left: ${spacingVar}; padding-right: ${spacingVar}; }`);
-        utilityLines.push(`.py-${cleanName} { padding-top: ${spacingVar}; padding-bottom: ${spacingVar}; }`);
-        utilityLines.push(`.pt-${cleanName} { padding-top: ${spacingVar}; }`);
-        utilityLines.push(`.pr-${cleanName} { padding-right: ${spacingVar}; }`);
-        utilityLines.push(`.pb-${cleanName} { padding-bottom: ${spacingVar}; }`);
-        utilityLines.push(`.pl-${cleanName} { padding-left: ${spacingVar}; }`);
-        utilityLines.push(`.m-${cleanName} { margin: ${spacingVar}; }`);
-        utilityLines.push(`.mx-${cleanName} { margin-left: ${spacingVar}; margin-right: ${spacingVar}; }`);
-        utilityLines.push(`.my-${cleanName} { margin-top: ${spacingVar}; margin-bottom: ${spacingVar}; }`);
-        utilityLines.push(`.mt-${cleanName} { margin-top: ${spacingVar}; }`);
-        utilityLines.push(`.mr-${cleanName} { margin-right: ${spacingVar}; }`);
-        utilityLines.push(`.mb-${cleanName} { margin-bottom: ${spacingVar}; }`);
-        utilityLines.push(`.ml-${cleanName} { margin-left: ${spacingVar}; }`);
-        utilityLines.push(`.gap-${cleanName} { gap: ${spacingVar}; }`);
-    }
-
-    for (const [name] of Object.entries(flatRadius)) {
-        const cleanName = removePrefix(name, 'radius');
-        utilityLines.push(`.rounded-${cleanName} { border-radius: var(--radius-${cleanName}); }`);
-    }
-
-    const fontWeightTokens = tokens['font-weight/Mode 1'] || {};
-    const flatFontWeights = flattenTokens(fontWeightTokens);
-    for (const [name, value] of Object.entries(flatFontWeights)) {
-        const cleanName = removePrefix(name, 'fw');
-        const weight = normalizeFontWeight(value);
-        utilityLines.push(`.font-${cleanName} { font-weight: ${weight}; }`);
-    }
-    utilityLines.push('');
-    const themeCSS = `${utilityLines.join('\n')}`;
-
     // Write files
     fs.writeFileSync(tokensCSSPath, tokensCSS);
-    fs.writeFileSync(themeCSSPath, themeCSS);
 
     console.log(`✅ Tokens built successfully!`);
     console.log(`   Input:  ${tokensPath}`);
     console.log(`   Output: ${tokensCSSPath}`);
-    console.log(`   Output: ${themeCSSPath}`);
     console.log(`\n   Generated tokens:`);
     console.log(`   - ${Object.keys(flatBaseColors).length} foundation base colors`);
-    console.log(`   - ${Object.keys(flatFills).length} semantic fill colors → bg-*`);
-    console.log(`   - ${Object.keys(flatStrokes).length} semantic stroke colors → border-*`);
-    console.log(`   - ${Object.keys(flatText).length} semantic text colors → text-*`);
-    console.log(`   - ${Object.keys(flatSpacing).length} foundation spacing tokens → p-*, m-*, gap-*`);
+    console.log(`   - ${Object.keys(flatFills).length} semantic fill colors`);
+    console.log(`   - ${Object.keys(flatStrokes).length} semantic stroke colors`);
+    console.log(`   - ${Object.keys(flatText).length} semantic text colors`);
+    console.log(`   - ${Object.keys(flatSpacing).length} foundation spacing tokens`);
     console.log(`   - ${Object.keys(flatSizes).length} foundation size tokens`);
-    console.log(`   - ${Object.keys(flatRadius).length} foundation radius tokens → rounded-*`);
-    console.log(`   - ${componentTokenCount} component tokens → bg-button-*, text-button-*, border-button-*`);
+    console.log(`   - ${Object.keys(flatRadius).length} foundation radius tokens`);
+    console.log(`   - ${componentTokenCount} component tokens`);
     console.log('\n   🎉 All files auto-generated! No manual CSS changes needed.');
 }
 
