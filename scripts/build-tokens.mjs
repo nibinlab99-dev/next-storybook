@@ -27,11 +27,10 @@ const THEME_OUTPUT = path.join(__dirname, '..', 'src', 'styles', 'theme.css');
 // Read tokens file
 const tokens = JSON.parse(fs.readFileSync(TOKENS_INPUT, 'utf8'));
 
-// Extract token sets
-const colorsValue = tokens['Colors/Value'] || {};
-const spacingMode = tokens['Spacing/Mode 1'] || {};
-const sizeMode = tokens['Size/Mode 1'] || {};
-const radiusMode = tokens['Radius/Mode 1'] || {};
+// Extract token sets from new hierarchical structure
+const foundationValue = tokens['Foundation/Value'] || {};
+const semanticValue = tokens['Semantic/Value'] || {};
+const componentsMode = tokens['Components/Mode 1'] || {};
 
 /**
  * Resolve token alias references like {base.blue.50} to actual values
@@ -98,58 +97,73 @@ let tokensCSS = `/**
 :root {
 `;
 
-// Process base colors
-const baseColors = colorsValue.base || {};
+// Process foundation base colors
+const baseColors = foundationValue.base || {};
 const flatBaseColors = flattenTokens(baseColors);
 
-tokensCSS += '\n  /* ===== Base Colors ===== */\n';
+tokensCSS += '\n  /* ===== Foundation: Base Colors ===== */\n';
 for (const [name, value] of Object.entries(flatBaseColors)) {
     tokensCSS += `  --base-${name}: ${value};\n`;
 }
 
+// Process foundation spacing tokens
+const spacingTokens = (foundationValue.base && foundationValue.base.space) || {};
+tokensCSS += '\n  /* ===== Foundation: Spacing ===== */\n';
+for (const [name, token] of Object.entries(spacingTokens)) {
+    if (token && token.value) {
+        const cleanName = removePrefix(name, 'space');
+        tokensCSS += `  --space-${cleanName}: ${token.value};\n`;
+    }
+}
+
+// Process foundation size tokens
+const sizeTokens = (foundationValue.base && foundationValue.base.size) || {};
+tokensCSS += '\n  /* ===== Foundation: Sizes ===== */\n';
+for (const [name, token] of Object.entries(sizeTokens)) {
+    if (token && token.value) {
+        const cleanName = removePrefix(name, 'size');
+        tokensCSS += `  --size-${cleanName}: ${token.value};\n`;
+    }
+}
+
+// Process foundation radius tokens
+const radiusTokens = (foundationValue.base && foundationValue.base.radius) || {};
+tokensCSS += '\n  /* ===== Foundation: Border Radius ===== */\n';
+for (const [name, token] of Object.entries(radiusTokens)) {
+    if (token && token.value) {
+        const cleanName = removePrefix(name, 'radius');
+        tokensCSS += `  --radius-${cleanName}: ${token.value};\n`;
+    }
+}
+
 // Process semantic fill colors (for backgrounds)
-const fillColors = colorsValue.fill || {};
-tokensCSS += '\n  /* ===== Fill Colors (backgrounds) ===== */\n';
+const fillColors = semanticValue.fill || {};
+tokensCSS += '\n  /* ===== Semantic: Fill Colors (backgrounds) ===== */\n';
 for (const [name, token] of Object.entries(fillColors)) {
-    const resolved = resolveAlias(token.value, colorsValue);
-    tokensCSS += `  --fill-${name}: ${resolved};\n`;
+    if (token && token.value) {
+        const resolved = resolveAlias(token.value, foundationValue);
+        tokensCSS += `  --fill-${name}: ${resolved};\n`;
+    }
 }
 
 // Process semantic stroke colors (for borders)
-const strokeColors = colorsValue.stroke || {};
-tokensCSS += '\n  /* ===== Stroke Colors (borders) ===== */\n';
+const strokeColors = semanticValue.stroke || {};
+tokensCSS += '\n  /* ===== Semantic: Stroke Colors (borders) ===== */\n';
 for (const [name, token] of Object.entries(strokeColors)) {
-    const resolved = resolveAlias(token.value, colorsValue);
-    tokensCSS += `  --stroke-${name}: ${resolved};\n`;
+    if (token && token.value) {
+        const resolved = resolveAlias(token.value, foundationValue);
+        tokensCSS += `  --stroke-${name}: ${resolved};\n`;
+    }
 }
 
 // Process semantic text colors
-const textColors = colorsValue.text || {};
-tokensCSS += '\n  /* ===== Text Colors ===== */\n';
+const textColors = semanticValue.text || {};
+tokensCSS += '\n  /* ===== Semantic: Text Colors ===== */\n';
 for (const [name, token] of Object.entries(textColors)) {
-    const resolved = resolveAlias(token.value, colorsValue);
-    tokensCSS += `  --text-${name}: ${resolved};\n`;
-}
-
-// Process spacing tokens
-tokensCSS += '\n  /* ===== Spacing ===== */\n';
-for (const [name, token] of Object.entries(spacingMode)) {
-    const cleanName = removePrefix(name, 'space');
-    tokensCSS += `  --space-${cleanName}: ${token.value};\n`;
-}
-
-// Process size tokens
-tokensCSS += '\n  /* ===== Sizes ===== */\n';
-for (const [name, token] of Object.entries(sizeMode)) {
-    const cleanName = removePrefix(name, 'size');
-    tokensCSS += `  --size-${cleanName}: ${token.value};\n`;
-}
-
-// Process radius tokens
-tokensCSS += '\n  /* ===== Border Radius ===== */\n';
-for (const [name, token] of Object.entries(radiusMode)) {
-    const cleanName = removePrefix(name, 'radius');
-    tokensCSS += `  --radius-${cleanName}: ${token.value};\n`;
+    if (token && token.value) {
+        const resolved = resolveAlias(token.value, foundationValue);
+        tokensCSS += `  --text-${name}: ${resolved};\n`;
+    }
 }
 
 tokensCSS += '}\n';
@@ -173,9 +187,11 @@ let themeCSS = `/**
 `;
 
 // Generate border radius for @theme
-for (const [name] of Object.entries(radiusMode)) {
-    const cleanName = removePrefix(name, 'radius');
-    themeCSS += `  --radius-${cleanName}: var(--radius-${cleanName});\n`;
+for (const [name] of Object.entries(radiusTokens)) {
+    if (name && radiusTokens[name] && radiusTokens[name].value) {
+        const cleanName = removePrefix(name, 'radius');
+        themeCSS += `  --radius-${cleanName}: var(--radius-${cleanName});\n`;
+    }
 }
 
 themeCSS += '}\n';
@@ -212,9 +228,10 @@ themeCSS += `
 /* ===== Spacing Utilities (auto-generated) ===== */
 `;
 
-for (const [name] of Object.entries(spacingMode)) {
-    const cleanName = removePrefix(name, 'space');
-    themeCSS += `
+for (const [name] of Object.entries(spacingTokens)) {
+    if (name && spacingTokens[name] && spacingTokens[name].value) {
+        const cleanName = removePrefix(name, 'space');
+        themeCSS += `
 /* ${cleanName} spacing */
 .p-${cleanName} { padding: var(--space-${cleanName}); }
 .px-${cleanName} { padding-left: var(--space-${cleanName}); padding-right: var(--space-${cleanName}); }
@@ -234,10 +251,11 @@ for (const [name] of Object.entries(spacingMode)) {
 .gap-x-${cleanName} { column-gap: var(--space-${cleanName}); }
 .gap-y-${cleanName} { row-gap: var(--space-${cleanName}); }
 `;
+    }
 }
 
 // ============ PROCESS COMPONENT TOKENS ============
-const componentsMode = tokens['Components/Mode 1'] || {};
+// componentsMode already extracted at the top
 
 // Flatten component tokens and add to tokens.css
 let componentTokenCount = 0;
@@ -261,8 +279,9 @@ for (const [componentName, componentData] of Object.entries(componentsMode)) {
                 // Convert {fill.blue} to var(--fill-blue)
                 const aliasMatch = aliasValue.match(/^\{(.+)\}$/);
                 if (aliasMatch) {
-                    const refPath = aliasMatch[1].replace(/\./g, '-');
-                    tokensCSS += `  ${varName}: var(--${refPath});\n`;
+                    // Try to resolve from semanticValue first, then foundationValue
+                    const resolved = resolveAlias(aliasValue, { ...foundationValue, ...semanticValue });
+                    tokensCSS += `  ${varName}: ${resolved};\n`;
                 } else {
                     tokensCSS += `  ${varName}: ${aliasValue};\n`;
                 }
@@ -328,13 +347,13 @@ console.log(`   Output: ${TOKENS_OUTPUT}`);
 console.log(`   Output: ${THEME_OUTPUT}`);
 console.log('');
 console.log('   Generated tokens:');
-console.log(`   - ${Object.keys(flatBaseColors).length} base colors`);
-console.log(`   - ${Object.keys(fillColors).length} fill colors → bg-*`);
-console.log(`   - ${Object.keys(strokeColors).length} stroke colors → border-*`);
-console.log(`   - ${Object.keys(textColors).length} text colors → text-*`);
-console.log(`   - ${Object.keys(spacingMode).length} spacing tokens → p-*, m-*, gap-*`);
-console.log(`   - ${Object.keys(sizeMode).length} size tokens`);
-console.log(`   - ${Object.keys(radiusMode).length} radius tokens → rounded-*`);
+console.log(`   - ${Object.keys(flatBaseColors).length} foundation base colors`);
+console.log(`   - ${Object.keys(fillColors).length} semantic fill colors → bg-*`);
+console.log(`   - ${Object.keys(strokeColors).length} semantic stroke colors → border-*`);
+console.log(`   - ${Object.keys(textColors).length} semantic text colors → text-*`);
+console.log(`   - ${Object.keys(spacingTokens).length} foundation spacing tokens → p-*, m-*, gap-*`);
+console.log(`   - ${Object.keys(sizeTokens).length} foundation size tokens`);
+console.log(`   - ${Object.keys(radiusTokens).length} foundation radius tokens → rounded-*`);
 console.log(`   - ${componentTokenCount} component tokens → bg-button-*, text-button-*, border-button-*`);
 console.log('');
 console.log('   🎉 All files auto-generated! No manual CSS changes needed.');
