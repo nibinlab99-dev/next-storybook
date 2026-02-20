@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# next-storybook
+
+A design system component library built with **Next.js**, **Storybook**, and **Figma Design Tokens** — demonstrating a complete token-driven UI pipeline from Figma to production-ready React components.
+
+🔴 **Live Storybook:** [nibin-org.github.io/next-storybook](https://nibin-org.github.io/next-storybook)
+
+---
+
+## Token Pipeline
+
+```
+Figma Design  →  Token Studio  →  tokens.json  →  build-tokens script  →  CSS Variables  →  Components
+```
+
+Design tokens are exported from Figma via Token Studio as `tokens.json`, then transformed into CSS custom properties at build time. All components consume these tokens — no hardcoded values.
+
+---
+
+## Components
+
+| Component | Variants | Status |
+|---|---|---|
+| Button | Primary, Secondary, Tertiary · Sizes · Loading · Icons | ✅ Live |
+| Input | _(coming soon)_ | 🔄 In progress |
+| Badge | _(coming soon)_ | 🔄 In progress |
+| Card | _(coming soon)_ | 🔄 In progress |
+
+---
+
+## Built With
+
+- **Next.js** — React framework
+- **Storybook 10** — Component documentation and playground
+- **Token Studio** — Figma token export
+- **TailwindCSS** — Utility-first styling driven by design tokens
+- **SCSS** — Custom styling architecture
+- **Vitest** — Unit testing
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+npm install
+
+# Build tokens from tokens.json
+npm run tokens:build
+
+# Run Storybook locally
+npm run storybook
+# Opens at http://localhost:6006
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## About
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Built by [Nibin Kurian](https://nibin-portfolio.vercel.app) — UI Engineer specialising in Design Systems and Figma-to-code pipelines.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Portfolio](https://nibin-portfolio.vercel.app) · [LinkedIn](https://linkedin.com/in/nibin-kurian) · [TokVista NPM Package](https://npmjs.com/package/tokvista)
